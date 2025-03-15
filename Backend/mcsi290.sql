@@ -1,2 +1,2 @@
 SELECT *
-FROM combos
+FROM desserts
