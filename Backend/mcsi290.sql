@@ -1,2 +1,2 @@
 SELECT *
-FROM appetizers
+FROM combos
