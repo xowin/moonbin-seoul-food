@@ -1,4 +1,6 @@
 import "./globals.css"
+import { CartProvider } from "@/context/cart-context"
+import { AuthProvider } from "@/context/auth-context"
 
 export const metadata = {
   title: "Moonbin's Seoul Food",
@@ -8,8 +10,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          <CartProvider>{children}</CartProvider>
+        </AuthProvider>
+      </body>
     </html>
-  );
+  )
 }
-

@@ -2,9 +2,12 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { useCart } from "@/context/cart-context"
 
 export function FoodModal({ food, onClose }) {
   const [quantity, setQuantity] = useState(1)
+  const [imageError, setImageError] = useState(false)
+  const { addToCart } = useCart()
 
   const increaseQuantity = () => {
     setQuantity(quantity + 1)
@@ -16,9 +19,8 @@ export function FoodModal({ food, onClose }) {
     }
   }
 
-  const addToCart = () => {
-    // Here you would implement your cart functionality
-    alert(`Added ${quantity} ${food.name}(s) to cart!`)
+  const handleAddToCart = () => {
+    addToCart(food, quantity)
     onClose()
   }
 
@@ -28,8 +30,17 @@ export function FoodModal({ food, onClose }) {
         className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative aspect-video">
-          <Image src={food.image || "/placeholder.svg"} alt={food.name} fill className="object-cover rounded-t-lg" />
+        {/* Fixed aspect ratio container for the image */}
+        <div className="relative w-full pt-[66.67%]">
+          {" "}
+          {/* 3:2 aspect ratio */}
+          <Image
+            src={imageError ? "/placeholder.svg?height=300&width=500" : food.image}
+            alt={food.name}
+            fill
+            className="object-cover absolute inset-0 rounded-t-lg"
+            onError={() => setImageError(true)}
+          />
         </div>
 
         <div className="p-6">
@@ -57,7 +68,7 @@ export function FoodModal({ food, onClose }) {
 
           <button
             className="w-full py-2 bg-[#9d7a9b] text-white italic rounded hover:bg-[#8a6a8a] transition-colors"
-            onClick={addToCart}
+            onClick={handleAddToCart}
           >
             Add to Cart - ${(food.price * quantity).toFixed(2)}
           </button>
