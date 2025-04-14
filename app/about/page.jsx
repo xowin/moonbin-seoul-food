@@ -1,62 +1,17 @@
 import Image from "next/image"
 import Link from "next/link"
-import { CartIcon } from "@/components/cart-icon"
 import { CartSlider } from "@/components/cart-slider"
+import { Header } from "@/components/header"
+import { Navigation } from "@/components/navigation"
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#f5f2e9]">
       {/* Header */}
-      <header className="relative flex justify-between items-center px-6 py-4 bg-[#f5f2e9]">
-        <div className="flex items-center gap-4">
-          <div className="relative w-24 h-24">
-            <Image
-              src="/MoonBin.png?height=100&width=100"
-              alt="Moon logo"
-              width={100}
-              height={100}
-              className="object-contain"
-            />
-            <div className="absolute bottom-0 text-xs text-center w-full text-[#333]">문빈의 서울 음식</div>
-          </div>
-          <h1 className="text-4xl font-cursive italic text-[#333]">
-            Welcome to
-            <br />
-            Moonbin&apos;s Seoul Food
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <CartIcon />
-          <Link
-            href="/signup"
-            className="px-4 py-1 text-[#a05046] border-2 border-[#9d7a9b] bg-white font-medium italic"
-          >
-            Sign Up
-          </Link>
-          <Link
-            href="/login"
-            className="px-4 py-1 text-[#a05046] border-2 border-[#9d7a9b] bg-white font-medium italic"
-          >
-            Log In
-          </Link>
-        </div>
-      </header>
+      <Header />
 
       {/* Navigation */}
-      <nav className="bg-[#9d7a9b] py-3 px-6 flex justify-center gap-8">
-        <Link href="/" className="px-8 py-2 bg-white text-[#a05046] text-2xl font-medium italic">
-          Home
-        </Link>
-        <Link href="/about" className="px-8 py-2 bg-white text-[#a05046] text-2xl font-medium italic">
-          About Us
-        </Link>
-        <Link href="/menu" className="px-8 py-2 bg-white text-[#a05046] text-2xl font-medium italic">
-          Menu
-        </Link>
-        <Link href="/contact" className="px-8 py-2 bg-white text-[#a05046] text-2xl font-medium italic">
-          Contact
-        </Link>
-      </nav>
+      <Navigation />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-6 py-8">
@@ -97,9 +52,10 @@ export default function AboutPage() {
           <div className="bg-white p-4 rounded-lg border-2 border-[#9d7a9b]">
             <div className="aspect-square relative mb-3">
               <Image
-                src="/placeholder.svg?height=200&width=200"
+                src="/chefs/chefmoonbin.jpg"
                 alt="Chef Moonbin"
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover rounded-full"
               />
             </div>
@@ -109,7 +65,7 @@ export default function AboutPage() {
           <div className="bg-white p-4 rounded-lg border-2 border-[#9d7a9b]">
             <div className="aspect-square relative mb-3">
               <Image
-                src="/placeholder.svg?height=200&width=200"
+                src="/chefs/soojin.jpg"
                 alt="Soo-Jin Park"
                 fill
                 className="object-cover rounded-full"
@@ -121,7 +77,7 @@ export default function AboutPage() {
           <div className="bg-white p-4 rounded-lg border-2 border-[#9d7a9b]">
             <div className="aspect-square relative mb-3">
               <Image
-                src="/placeholder.svg?height=200&width=200"
+                src="/chefs/jiwoo.jpg"
                 alt="Ji-Woo Kim"
                 fill
                 className="object-cover rounded-full"

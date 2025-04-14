@@ -33,7 +33,7 @@ export default function MenuPage() {
         {
           id: 2,
           name: "Tteokbokki",
-          image: "/appetizers/tteobokki.jpg",
+          image: "/appetizers/T.jpg",
           description: "Spicy rice cakes cooked in a sweet and spicy gochujang sauce with fish cakes and scallions.",
           price: 10.99,
         },
@@ -87,7 +87,7 @@ export default function MenuPage() {
         {
           id: 8,
           name: "Mochi",
-          image: "/desserts/mochi.jpg?height=150&width=200",
+          image: "/desserts/M.jpg?height=150&width=200",
           description: "Chewy rice cakes with various fillings including red bean, strawberry, and green tea.",
           price: 6.99,
         },

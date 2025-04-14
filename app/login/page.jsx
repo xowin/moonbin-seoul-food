@@ -49,7 +49,7 @@ export default function LoginPage() {
       setError("")
       setLoading(true)
       await loginWithGoogle()
-      router.push("/")
+      router.push("/page.jsx")
     } catch (error) {
       console.error("Google login error:", error)
       setError("Failed to log in with Google.")
@@ -162,7 +162,6 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full px-6 py-3 bg-[#9d7a9b] text-white italic rounded hover:bg-[#8a6a8a] transition-colors disabled:opacity-70"
               >
-              Log In
               {loading ? " Loading..." : " Log In"}
             </button>
           </form>

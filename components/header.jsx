@@ -35,7 +35,6 @@ export function Header() {
               e.target.src = "/placeholder.svg?height=100&width=100"
             }}
           />
-          <div className="absolute bottom-0 text-xs text-center w-full text-[#333]">문빈의 서울 음식</div>
         </div>
         <h1 className="text-4xl font-cursive italic text-[#333]">
           Welcome to
