@@ -12,15 +12,15 @@ import { useCart } from "@/context/cart-context"
 
 export default function FavoritesPage() {
   const router = useRouter()
-  const { currentUser, userProfile, updateUserProfile } = useAuth()
+  const { currentUser, userProfile, updateUserProfile, loading } = useAuth()
   const { addToCart } = useCart()
 
-  // Redirect if not logged in
+  // Update the useEffect to better handle redirects
   useEffect(() => {
-    if (!currentUser) {
+    if (!currentUser && !loading) {
       router.push("/login")
     }
-  }, [currentUser, router])
+  }, [currentUser, router, loading])
 
   const handleRemoveFavorite = async (itemId) => {
     if (!userProfile || !userProfile.favorites) return
@@ -37,7 +37,8 @@ export default function FavoritesPage() {
     addToCart(item, 1)
   }
 
-  if (!currentUser || !userProfile) {
+  // Replace the loading check with a more robust one
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f2e9]">
         <Header />
@@ -45,6 +46,51 @@ export default function FavoritesPage() {
         <div className="max-w-4xl mx-auto px-6 py-12 text-center">
           <p className="text-[#a05046] italic text-lg">Loading favorites...</p>
         </div>
+      </div>
+    )
+  }
+
+  // If not loading but no user, redirect (this is a fallback)
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-[#f5f2e9]">
+        <Header />
+        <Navigation />
+        <div className="max-w-4xl mx-auto px-6 py-12 text-center">
+          <p className="text-[#a05046] italic text-lg">Please log in to view your favorites.</p>
+          <button
+            onClick={() => router.push("/login")}
+            className="mt-4 px-6 py-2 bg-[#9d7a9b] text-white italic rounded hover:bg-[#8a6a8a] transition-colors"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // If user exists but no profile, show a default view with empty favorites
+  if (!userProfile) {
+    const emptyProfile = { favorites: [] }
+    return (
+      <div className="min-h-screen bg-[#f5f2e9]">
+        <Header />
+        <Navigation />
+        <main className="max-w-4xl mx-auto px-6 py-12">
+          <h2 className="text-3xl text-[#a05046] italic font-medium mb-8">My Favorites</h2>
+          <div className="bg-white p-12 rounded-lg border-2 border-[#9d7a9b] shadow-md text-center">
+            <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl text-[#a05046] italic font-medium mb-2">No Favorites Yet</h3>
+            <p className="text-gray-500 italic mb-6">You haven't added any items to your favorites yet.</p>
+            <button
+              onClick={() => router.push("/menu")}
+              className="px-6 py-3 bg-[#9d7a9b] text-white italic rounded hover:bg-[#8a6a8a] transition-colors"
+            >
+              Browse Menu
+            </button>
+          </div>
+        </main>
+        <CartSlider />
       </div>
     )
   }

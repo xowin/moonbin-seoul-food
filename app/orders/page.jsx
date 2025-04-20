@@ -11,16 +11,17 @@ import { ShoppingBag, Clock, Calendar, CreditCard } from "lucide-react"
 
 export default function OrdersPage() {
   const router = useRouter()
-  const { currentUser, userProfile } = useAuth()
+  const { currentUser, userProfile, loading } = useAuth()
 
   // Redirect if not logged in
   useEffect(() => {
-    if (!currentUser) {
+    if (!currentUser && !loading) {
       router.push("/login")
     }
-  }, [currentUser, router])
+  }, [currentUser, router, loading])
 
-  if (!currentUser || !userProfile) {
+  // Replace the loading check with a more robust one
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f2e9]">
         <Header />
@@ -28,6 +29,51 @@ export default function OrdersPage() {
         <div className="max-w-4xl mx-auto px-6 py-12 text-center">
           <p className="text-[#a05046] italic text-lg">Loading orders...</p>
         </div>
+      </div>
+    )
+  }
+
+  // If not loading but no user, redirect (this is a fallback)
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-[#f5f2e9]">
+        <Header />
+        <Navigation />
+        <div className="max-w-4xl mx-auto px-6 py-12 text-center">
+          <p className="text-[#a05046] italic text-lg">Please log in to view your orders.</p>
+          <button
+            onClick={() => router.push("/login")}
+            className="mt-4 px-6 py-2 bg-[#9d7a9b] text-white italic rounded hover:bg-[#8a6a8a] transition-colors"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // If user exists but no profile, show a default view with empty orders
+  if (!userProfile) {
+    const emptyProfile = { orders: [] }
+    return (
+      <div className="min-h-screen bg-[#f5f2e9]">
+        <Header />
+        <Navigation />
+        <main className="max-w-4xl mx-auto px-6 py-12">
+          <h2 className="text-3xl text-[#a05046] italic font-medium mb-8">My Orders</h2>
+          <div className="bg-white p-12 rounded-lg border-2 border-[#9d7a9b] shadow-md text-center">
+            <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl text-[#a05046] italic font-medium mb-2">No Orders Yet</h3>
+            <p className="text-gray-500 italic mb-6">You haven't placed any orders yet.</p>
+            <button
+              onClick={() => router.push("/menu")}
+              className="px-6 py-3 bg-[#9d7a9b] text-white italic rounded hover:bg-[#8a6a8a] transition-colors"
+            >
+              Browse Menu
+            </button>
+          </div>
+        </main>
+        <CartSlider />
       </div>
     )
   }

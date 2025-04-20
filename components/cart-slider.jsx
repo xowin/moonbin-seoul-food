@@ -1,12 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useCart } from "@/context/cart-context"
+import { useAuth } from "@/context/auth-context"
 import Image from "next/image"
 import { X, Minus, Plus, ShoppingBag, ArrowLeft, Check } from "lucide-react"
 
 export function CartSlider() {
   const { cartItems, isCartOpen, closeCart, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart()
+  const { currentUser, userProfile, addOrder } = useAuth()
+
   const [checkoutStep, setCheckoutStep] = useState("cart") // cart, checkout, confirmation
   const [formData, setFormData] = useState({
     name: "",
@@ -20,6 +23,23 @@ export function CartSlider() {
     cvv: "",
   })
   const [errors, setErrors] = useState({})
+  const [orderPlaced, setOrderPlaced] = useState(false)
+  const [placedOrderId, setPlacedOrderId] = useState(null)
+
+  // Pre-fill form with user profile data if available
+  useEffect(() => {
+    if (userProfile && checkoutStep === "checkout") {
+      setFormData((prevData) => ({
+        ...prevData,
+        name: `${userProfile.firstName} ${userProfile.lastName}`,
+        email: userProfile.email || "",
+        address: userProfile.address || "",
+        city: userProfile.city || "",
+        zipCode: userProfile.zipCode || "",
+        cardName: `${userProfile.firstName} ${userProfile.lastName}`,
+      }))
+    }
+  }, [userProfile, checkoutStep])
 
   if (!isCartOpen) return null
 
@@ -58,7 +78,7 @@ export function CartSlider() {
     return newErrors
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     const formErrors = validateForm()
@@ -67,11 +87,45 @@ export function CartSlider() {
       return
     }
 
-    // Process order (in a real app, you would send this to your backend)
-    console.log("Order submitted:", { items: cartItems, total: getCartTotal(), customer: formData })
+    try {
+      // Create order data
+      const orderData = {
+        items: cartItems,
+        total: getCartTotal(),
+        customer: {
+          name: formData.name,
+          email: formData.email,
+          address: formData.address,
+          city: formData.city,
+          zipCode: formData.zipCode,
+        },
+        paymentMethod: "Credit Card",
+        paymentDetails: {
+          last4: formData.cardNumber.slice(-4),
+        },
+      }
 
-    // Move to confirmation step
-    setCheckoutStep("confirmation")
+      // Save order to user profile if logged in
+      if (currentUser && typeof addOrder === "function") {
+        const order = await addOrder(orderData)
+        if (order) {
+          setPlacedOrderId(order.id)
+        }
+      } else {
+        // Generate a random order ID for non-logged in users
+        setPlacedOrderId(`ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`)
+        console.log("User not logged in or addOrder function not available")
+      }
+
+
+      setOrderPlaced(true)
+      // Move to confirmation step
+      setCheckoutStep("confirmation")
+    } catch (error) {
+      console.error("Error placing order:", error)
+      // Show error to user
+      setErrors({ submit: "Failed to place order. Please try again." })
+    }
   }
 
   const handleBackToCart = () => {
@@ -92,6 +146,8 @@ export function CartSlider() {
       expiry: "",
       cvv: "",
     })
+    setOrderPlaced(false)
+    setPlacedOrderId(null)
     closeCart()
   }
 
@@ -402,6 +458,10 @@ export function CartSlider() {
               </div>
             </div>
           </div>
+
+          {errors.submit && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{errors.submit}</div>
+          )}
         </form>
       </div>
 
@@ -449,9 +509,10 @@ export function CartSlider() {
           <h4 className="text-lg font-medium text-[#a05046] italic mb-2">Order Summary</h4>
           <p className="text-sm text-gray-600 italic mb-1">
             Order #:{" "}
-            {Math.floor(Math.random() * 10000)
-              .toString()
-              .padStart(4, "0")}
+            {placedOrderId ||
+              Math.floor(Math.random() * 10000)
+                .toString()
+                .padStart(4, "0")}
           </p>
           <p className="text-sm text-gray-600 italic mb-3">Date: {new Date().toLocaleDateString()}</p>
 

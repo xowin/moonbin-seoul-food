@@ -49,7 +49,7 @@ export default function LoginPage() {
       setError("")
       setLoading(true)
       await loginWithGoogle()
-      router.push("/page.jsx")
+      router.push("/profile")
     } catch (error) {
       console.error("Google login error:", error)
       setError("Failed to log in with Google.")

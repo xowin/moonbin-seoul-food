@@ -1,14 +1,29 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { FoodModal } from "@/components/food-modal"
 import { CartSlider } from "@/components/cart-slider"
 import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
+import { useAuth } from "@/context/auth-context"
+import { Heart } from "lucide-react"
 
 export default function MenuPage() {
   const [selectedFood, setSelectedFood] = useState(null)
+  const { currentUser, userProfile, addToFavorites, removeFromFavorites } = useAuth()
+  const [favorites, setFavorites] = useState({})
+
+  // Load favorites when user profile changes
+  useEffect(() => {
+    if (userProfile && userProfile.favorites) {
+      const favMap = {}
+      userProfile.favorites.forEach((item) => {
+        favMap[item.id] = true
+      })
+      setFavorites(favMap)
+    }
+  }, [userProfile])
 
   const openFoodModal = (food) => {
     setSelectedFood(food)
@@ -16,6 +31,42 @@ export default function MenuPage() {
 
   const closeFoodModal = () => {
     setSelectedFood(null)
+  }
+  const toggleFavorite = async (e, food) => {
+    e.stopPropagation() // Prevent opening the modal
+
+    if (!currentUser) {
+      alert("Please log in to add items to favorites")
+      return
+    }
+
+    try {
+      if (favorites[food.id]) {
+        if (typeof removeFromFavorites === "function") {
+        await removeFromFavorites(food.id)
+        setFavorites((prev) => {
+          const newFavorites = { ...prev }
+          delete newFavorites[food.id]
+          return newFavorites
+        })
+      } else {
+        console.error("removeFromFavorites is not a function")
+      }
+      } else {
+        if (typeof addToFavorites === "function") {
+        await addToFavorites(food)
+        setFavorites((prev) => ({
+          ...prev,
+          [food.id]: true,
+        }))
+
+      } else {
+          console.error("addToFavorites is not a function")
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error)
+    }
   }
 
   // Menu data
@@ -126,9 +177,18 @@ export default function MenuPage() {
                 {category.items.map((item) => (
                   <div
                     key={item.id}
-                    className="bg-white border-2 border-[#9d7a9b] p-4 rounded-lg cursor-pointer hover:shadow-lg transition-shadow"
+                    className="bg-white border-2 border-[#9d7a9b] p-4 rounded-lg cursor-pointer hover:shadow-lg transition-shadow relative"
                     onClick={() => openFoodModal(item)}
                   >
+                    {/*Favorite button*/}
+                    <button
+                      className="absolute top-2 right-2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                      onClick={(e) => toggleFavorite(e, item)}
+                    >
+                      <Heart
+                        className={`h-5 w-5 ${favorites[item.id] ? "fill-[#a05046] text-[#a05046]" : "text-gray-400"}`}
+                      />
+                    </button>
                     <div className="aspect-video relative mb-3">
                       <Image
                         src={item.image || "/placeholder.svg"}

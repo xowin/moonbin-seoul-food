@@ -8,6 +8,7 @@ import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { CartSlider } from "@/components/cart-slider"
 import { User, Phone, MapPin, Edit, Save, X } from "lucide-react"
+import { FirebaseDebug } from "@/components/firebase-debug"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -76,13 +77,45 @@ export default function ProfilePage() {
     }
   }
 
-  if (!currentUser || !userProfile) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f2e9]">
         <Header />
         <Navigation />
         <div className="max-w-4xl mx-auto px-6 py-12 text-center">
           <p className="text-[#a05046] italic text-lg">Loading profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If not loading but no user, redirect (this is a fallback)
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-[#f5f2e9]">
+        <Header />
+        <Navigation />
+        <div className="max-w-4xl mx-auto px-6 py-12 text-center">
+          <p className="text-[#a05046] italic text-lg">Please log in to view your profile.</p>
+          <button
+            onClick={() => router.push("/login")}
+            className="mt-4 px-6 py-2 bg-[#9d7a9b] text-white italic rounded hover:bg-[#8a6a8a] transition-colors"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // If user exists but no profile, show a default view
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-[#f5f2e9]">
+        <Header />
+        <Navigation />
+        <div className="max-w-4xl mx-auto px-6 py-12 text-center">
+          <p className="text-[#a05046] italic text-lg">Setting up your profile...</p>
         </div>
       </div>
     )
@@ -128,7 +161,7 @@ export default function ProfilePage() {
               <div className="bg-gray-100 p-6 rounded-lg border border-gray-200 text-center">
                 <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-[#9d7a9b]">
                   <Image
-                    src={currentUser.photoURL || "/placeholder.svg?height=200&width=200"}
+                    src={"/default-user.jpg"}
                     alt="Profile"
                     fill
                     className="object-cover"
@@ -327,6 +360,7 @@ export default function ProfilePage() {
       </main>
 
       <CartSlider />
+      <FirebaseDebug />
     </div>
   )
 }

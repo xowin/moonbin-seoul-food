@@ -1,13 +1,26 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useCart } from "@/context/cart-context"
+import { useAuth } from "@/context/auth-context"
+import { Heart } from "lucide-react"
 
 export function FoodModal({ food, onClose }) {
   const [quantity, setQuantity] = useState(1)
   const [imageError, setImageError] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
   const { addToCart } = useCart()
+  const { currentUser, userProfile, addToFavorites, removeFromFavorites } = useAuth()
+
+  // Check if the food is already in favorites
+  useEffect(() => {
+    if (userProfile && userProfile.favorites) {
+      const isFav = userProfile.favorites.some((item) => item.id === food.id)
+      setIsFavorite(isFav)
+    }
+  }, [userProfile, food.id])
+
 
   const increaseQuantity = () => {
     setQuantity(quantity + 1)
@@ -22,6 +35,33 @@ export function FoodModal({ food, onClose }) {
   const handleAddToCart = () => {
     addToCart(food, quantity)
     onClose()
+  }
+
+  const toggleFavorite = async (e) => {
+    if (!currentUser) {
+      alert("Please log in to add items to favorites")
+      return
+    }
+
+    try {
+      if (isFavorite) {
+        if (typeof removeFromFavorites === "function") {
+          await removeFromFavorites(food.id)
+          setIsFavorite(false)
+        } else {
+          console.error("removeFromFavorites is not a function")
+        }
+      } else {
+        if (typeof addToFavorites === "function") {
+          await addToFavorites(food)
+          setIsFavorite(true)
+        } else {
+          console.error("addToFavorites is not a function")
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error)
+    }
   }
 
   return (
@@ -41,6 +81,12 @@ export function FoodModal({ food, onClose }) {
             className="object-cover absolute inset-0 rounded-t-lg"
             onError={() => setImageError(true)}
           />
+          <button
+            onClick={toggleFavorite}
+            className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+          >
+            <Heart className={`h-6 w-6 ${isFavorite ? "fill-[#a05046] text-[#a05046]" : "text-gray-400"}`} />
+          </button>
         </div>
 
         <div className="p-6">

@@ -11,10 +11,25 @@ import {
   updateProfile,
   sendPasswordResetEmail,
 } from "firebase/auth"
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore"
+import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 
-const AuthContext = createContext()
+// Create the auth context
+const AuthContext = createContext({
+  currentUser: null,
+  userProfile: null,
+  loading: true,
+  signup: async () => {},
+  login: async () => {},
+  loginWithGoogle: async () => {},
+  logout: async () => {},
+  resetPassword: async () => {},
+  updateUserProfile: async () => {},
+  fetchUserProfile: async () => {},
+  addOrder: async () => {},
+  addToFavorites: async () => {},
+  removeFromFavorites: async () => {},
+})
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null)
@@ -58,6 +73,9 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider()
+      provider.setCustomParameters({
+        prompt: "select_account",
+      })
       const result = await signInWithPopup(auth, provider)
       const user = result.user
 
@@ -83,6 +101,7 @@ export function AuthProvider({ children }) {
 
       return user
     } catch (error) {
+      console.error("Error signing in with Google:", error)
       throw error
     }
   }
@@ -114,28 +133,140 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const addOrder = async (orderData) => {
+    if (!currentUser) return null
+
+    try {
+      // Generate a unique order ID
+      const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+
+      // Create the order object
+      const order = {
+        id: orderId,
+        date: new Date().toISOString(),
+        ...orderData,
+        status: "Confirmed",
+      }
+
+      // Add to Firestore
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        orders: arrayUnion(order),
+      })
+
+      // Refresh user profile
+      await fetchUserProfile(currentUser.uid)
+
+      return order
+    } catch (error) {
+      console.error("Error adding order:", error)
+      throw error
+    }
+  }
+
+  // Add item to favorites
+  const addToFavorites = async (item) => {
+    if (!currentUser) return null
+
+    try {
+      // Check if item is already in favorites
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid))
+      const userData = userDoc.data()
+
+      if (userData.favorites.some((fav) => fav.id === item.id)) {
+        // Item already in favorites
+        return userData
+      }
+
+      // Add to Firestore
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        favorites: arrayUnion(item),
+      })
+
+      // Refresh user profile
+      await fetchUserProfile(currentUser.uid)
+
+      return userProfile
+    } catch (error) {
+      console.error("Error adding to favorites:", error)
+      throw error
+    }
+  }
+
+  // Remove item from favorites
+  const removeFromFavorites = async (itemId) => {
+    if (!currentUser || !userProfile) return null
+
+    try {
+      // Filter out the item to remove
+      const updatedFavorites = userProfile.favorites.filter((item) => item.id !== itemId)
+
+      // Update Firestore
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        favorites: updatedFavorites,
+      })
+
+      // Refresh user profile
+      await fetchUserProfile(currentUser.uid)
+
+      return userProfile
+    } catch (error) {
+      console.error("Error removing from favorites:", error)
+      throw error
+    }
+  }
+
   // Fetch user profile from Firestore
   const fetchUserProfile = async (userId) => {
     try {
       const userDoc = await getDoc(doc(db, "users", userId))
+
       if (userDoc.exists()) {
         setUserProfile(userDoc.data())
         return userDoc.data()
+      } else {
+        // If profile doesn't exist, create a default one
+        const defaultProfile = {
+          firstName: currentUser?.displayName?.split(" ")[0] || "",
+          lastName: currentUser?.displayName?.split(" ").slice(1).join(" ") || "",
+          email: currentUser?.email || "",
+          createdAt: new Date().toISOString(),
+          orders: [],
+          favorites: [],
+        }
+
+        // Save the default profile
+        await setDoc(doc(db, "users", userId), defaultProfile)
+        setUserProfile(defaultProfile)
+        return defaultProfile
       }
-      return null
     } catch (error) {
       console.error("Error fetching user profile:", error)
-      return null
+      // Return a minimal profile to prevent loading indefinitely
+      const fallbackProfile = {
+        firstName: currentUser?.displayName?.split(" ")[0] || "",
+        lastName: currentUser?.displayName?.split(" ").slice(1).join(" ") || "",
+        email: currentUser?.email || "",
+        createdAt: new Date().toISOString(),
+        orders: [],
+        favorites: [],
+      }
+      setUserProfile(fallbackProfile)
+      return fallbackProfile
     }
   }
 
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("Auth state changed:", user ? user.email : "No user")
       setCurrentUser(user)
 
       if (user) {
-        await fetchUserProfile(user.uid)
+        try {
+          await fetchUserProfile(user.uid)
+        } catch (error) {
+          console.error("Error in auth state change:", error)
+        }
       } else {
         setUserProfile(null)
       }
