@@ -45,7 +45,7 @@ export default function Home() {
       id: 9,
       name: "Tanghulu",
       description: "Candied fruit skewers with a crunchy sugar coating",
-      image: "/desserts/tanghulu.jpg",
+      image: "/desserts/Tanghulu.jpg",
     },
     {
       id: 7,
