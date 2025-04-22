@@ -8,7 +8,7 @@ import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { CartSlider } from "@/components/cart-slider"
 import { User, Phone, MapPin, Edit, Save, X } from "lucide-react"
-import { FirebaseDebug } from "@/components/firebase-debug"
+//import { FirebaseDebug } from "@/components/firebase-debug"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -360,7 +360,6 @@ export default function ProfilePage() {
       </main>
 
       <CartSlider />
-      <FirebaseDebug />
     </div>
   )
 }
