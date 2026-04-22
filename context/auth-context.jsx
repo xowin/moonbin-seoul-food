@@ -290,7 +290,7 @@ export function AuthProvider({ children }) {
     fetchUserProfile,
   }
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

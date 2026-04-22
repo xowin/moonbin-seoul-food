@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
@@ -10,7 +10,7 @@ import { Navigation } from "@/components/navigation"
 export default function LoginPage() {
   const router = useRouter()
 
-  const { login, loginWithGoogle, resetPassword } = useAuth() // Assuming you have a custom hook for authentication
+  const { login, loginWithGoogle, resetPassword, currentUser, loading: authLoading } = useAuth()
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,8 +18,14 @@ export default function LoginPage() {
   })
 
   const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+
+  useEffect(() => {
+    if (!authLoading && currentUser) {
+      router.replace("/")
+    }
+  }, [authLoading, currentUser, router])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -33,28 +39,32 @@ export default function LoginPage() {
     e.preventDefault()
     try {
       setError("")
-      setLoading(true)
+      setIsSubmitting(true)
       await login(formData.email, formData.password)
       router.push("/")
     } catch (error) {
       console.error("Login error:", error)
       setError("Failed to log in. Please check your email and password.")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
   const handleGoogleLogin = async () => {
     try {
       setError("")
-      setLoading(true)
+      setIsSubmitting(true)
       await loginWithGoogle()
-      router.push("/profile")
+      router.push("/")
     } catch (error) {
       console.error("Google login error:", error)
-      setError("Failed to log in with Google.")
+      const message =
+        error?.code === "permission-denied"
+          ? "Signed in with Google, but Firestore denied access. Please review your database rules."
+          : "Failed to log in with Google."
+      setError(message)
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -66,14 +76,14 @@ export default function LoginPage() {
 
     try {
       setError("")
-      setLoading(true)
+      setIsSubmitting(true)
       await resetPassword(formData.email)
       setResetSent(true)
     } catch (error) {
       console.error("Password reset error:", error)
       setError("Failed to send password reset email. Please check your email address.")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -159,10 +169,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className="w-full px-6 py-3 bg-[#9d7a9b] text-white italic rounded hover:bg-[#8a6a8a] transition-colors disabled:opacity-70"
               >
-              {loading ? " Loading..." : " Log In"}
+              {isSubmitting ? " Loading..." : " Log In"}
             </button>
           </form>
 
@@ -189,7 +199,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                disabled={loading}
+                disabled={isSubmitting}
                 className="w-full py-2 px-4 border-2 border-[#9d7a9b] rounded-md shadow-sm text-sm font-medium text-[#a05046] italic bg-white hover:bg-gray-50 disabled:opacity-70"
               >
                 Google

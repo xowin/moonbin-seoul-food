@@ -1,12 +1,13 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useRef } from "react"
 
 const CartContext = createContext()
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([])
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const hasMounted = useRef(false)
 
   // Load cart from localStorage on initial render
   useEffect(() => {
@@ -18,10 +19,12 @@ export function CartProvider({ children }) {
         console.error("Failed to parse cart from localStorage:", error)
       }
     }
+    hasMounted.current = true
   }, [])
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to localStorage whenever it changes, but skip the initial render
   useEffect(() => {
+    if (!hasMounted.current) return
     localStorage.setItem("cart", JSON.stringify(cartItems))
   }, [cartItems])
 

@@ -10,9 +10,18 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         <AuthProvider>
-          <CartProvider>{children}</CartProvider>
+          <CartProvider>
+            {children}
+            <footer className="bg-[#f5f2e9] border-t border-gray-300 py-4 px-6 text-center text-sm text-gray-500">
+              <p>
+                ⚠️ <strong>Disclaimer:</strong> This is a mock-up website created as a college project. Please{" "}
+                <strong>do not enter real credit card or personal payment information.</strong> No real transactions will
+                be processed.
+              </p>
+            </footer>
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>
